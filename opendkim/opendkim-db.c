@@ -5832,13 +5832,16 @@ dkimf_db_walk(DKIMF_DB db, _Bool first, void *key, size_t *keylen,
 	    (key == NULL && keylen != NULL))
 		return -1;
 
-	if (db->db_type == DKIMF_DB_TYPE_REFILE ||
-	    db->db_type == DKIMF_DB_TYPE_SOCKET ||
-	    db->db_type == DKIMF_DB_TYPE_LUA)
-		return -1;
-
 	switch (db->db_type)
 	{
+	  case DKIMF_DB_TYPE_REFILE:
+	  case DKIMF_DB_TYPE_SOCKET:
+	  case DKIMF_DB_TYPE_LUA:
+	  case DKIMF_DB_MEMCACHE:
+	  {
+		/* This operation does not support these type of dbs. */
+		return -1;
+	  }
 	  case DKIMF_DB_TYPE_CSL:
 	  case DKIMF_DB_TYPE_FILE:
 	  {
