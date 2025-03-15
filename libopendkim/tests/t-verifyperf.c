@@ -10,6 +10,7 @@
 
 /* system includes */
 #include <sys/types.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -339,6 +340,7 @@ main(int argc, char **argv)
 	/* generate the signature */
 	dkim = dkim_sign(lib, JOBID, NULL, key, selector, DOMAIN,
 	                 hcanon, bcanon, signalg, -1L, &status);
+	assert(status == DKIM_STAT_OK);
 
 	status = dkim_header(dkim, HEADER02, strlen(HEADER02));
 
@@ -369,7 +371,7 @@ main(int argc, char **argv)
 		msgrem -= wsz;
 	}
 
-	status = dkim_eom(dkim, NULL);
+	assert(dkim_eom(dkim, NULL) == DKIM_STAT_OK);
 
 	memset(hdr, '\0', sizeof hdr);
 	snprintf(hdr, sizeof hdr, "%s: ", DKIM_SIGNHEADER);
@@ -385,6 +387,7 @@ main(int argc, char **argv)
 	while (time(NULL) < start + testint)
 	{
 		dkim = dkim_verify(lib, JOBID, NULL, &status);
+		assert(status == DKIM_STAT_OK);
 
 		status = dkim_header(dkim, hdr, strlen(hdr));
 
@@ -418,6 +421,7 @@ main(int argc, char **argv)
 		}
 
 		status = dkim_eom(dkim, NULL);
+		assert(status == DKIM_STAT_OK);
 
 		status = dkim_free(dkim);
 

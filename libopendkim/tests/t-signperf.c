@@ -10,6 +10,7 @@
 
 /* system includes */
 #include <sys/types.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -335,6 +336,7 @@ main(int argc, char **argv)
 	{
 		dkim = dkim_sign(lib, JOBID, NULL, key, selector, DOMAIN,
 		                 hcanon, bcanon, signalg, -1L, &status);
+		assert(status == DKIM_STAT_OK);
 
 		status = dkim_header(dkim, HEADER02, strlen(HEADER02));
 
@@ -352,7 +354,7 @@ main(int argc, char **argv)
 
 		status = dkim_header(dkim, HEADER09, strlen(HEADER09));
 
-		status = dkim_eoh(dkim);
+		assert(dkim_eoh(dkim) == DKIM_STAT_OK);
 
 		msgrem = msgsize;
 
@@ -367,7 +369,7 @@ main(int argc, char **argv)
 
 		(void) dkim_body(dkim, CRLF, 2);
 
-		status = dkim_eom(dkim, NULL);
+		assert(dkim_eom(dkim, NULL) == DKIM_STAT_OK);
 
 		memset(hdr, '\0', sizeof hdr);
 		status = dkim_getsighdr(dkim, hdr, sizeof hdr,
