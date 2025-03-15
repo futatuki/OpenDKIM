@@ -44,7 +44,8 @@ check_PROGRAMS = t-setup t-test00 t-test01 t-test02 t-test03 t-test04 \
 	t-test157 t-test158 t-test159 \
 	t-signperf t-verifyperf
 check_SCRIPTS = t-signperf-sha1 t-signperf-relaxed-relaxed \
-	t-signperf-simple-simple
+	t-signperf-simple-simple \
+	t-signperf-ed25519 t-verifyperf-ed25519
 if ALL_SYMBOLS
 check_PROGRAMS += t-test49 t-test113 t-test118
 endif
