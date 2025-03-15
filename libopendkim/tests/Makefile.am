@@ -48,8 +48,13 @@ check_SCRIPTS = t-signperf-sha1 t-signperf-relaxed-relaxed \
 if ALL_SYMBOLS
 check_PROGRAMS += t-test49 t-test113 t-test118
 endif
-check_PROGRAMS += t-cleanup
-TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
+
+# t-cleanup can't be in check_PROGRAMS. It has to run last, after scripts.
+# Put it in EXTRA_PROGRAMS so automake will still build it on demand.
+EXTRA_PROGRAMS = t-cleanup
+CLEANFILES = t-cleanup
+
+TESTS = $(check_PROGRAMS) $(check_SCRIPTS) t-cleanup
 
 EXTRA_DIST = $(check_SCRIPTS)
 
