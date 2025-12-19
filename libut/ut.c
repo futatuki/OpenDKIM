@@ -747,7 +747,19 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 			}
 
 			vlist = strdup(p);
-			vlist[vlistlen - 1] = '\0';
+			if (vlist == NULL)
+			{
+				error = UT_ERROR_MALFORMED;
+				continue;
+			}
+			/* Recalculate length from current p position to closing brace */
+			/* to avoid buffer overflow from using stale vlistlen value */
+			if (eb > p)
+			{
+				size_t actual_len = eb - p;
+				if (actual_len < strlen(vlist))
+					vlist[actual_len] = '\0';
+			}
 
 			for (v = strtok_r(vlist, ",", &ctx);
 			     v != NULL;
