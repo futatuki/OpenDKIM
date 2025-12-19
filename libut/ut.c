@@ -624,7 +624,8 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 			olen++;
 			continue;
 		}
-		else if (ut_pct_encoded(p))
+		/* Check bounds before calling ut_pct_encoded to avoid OOB access */
+		else if (*p == '%' && *(p + 1) != '\0' && *(p + 2) != '\0' && ut_pct_encoded(p))
 		{
 			char c;
 
