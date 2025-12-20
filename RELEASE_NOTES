@@ -84,6 +84,8 @@ release, and a summary of the changes in that release.
 		which is marked as "ignore" by dkim_sig_ignore(), instead of
 		"dikim=fail".
 		Patch from Yasuhito Futatsuki (PR #234).
+        Fix incorrect parse error check on dkimf_rep_check().
+                Patch from Jared Mauch (PR on futatuki/OpenDKIM #2)
 	CONFIG: Add compatibility with openssl-1.1.0.  Patch from
 		Scott Kitterman.
 	CONFIG: Add missing ReplaceHeaders definition. Patch from
