@@ -747,7 +747,11 @@ ut_generate(URITEMP ut, const char *template, char *out, size_t outlen)
 			}
 
 			vlist = strdup(p);
-			vlist[vlistlen - 1] = '\0';
+			/* Prevent integer underflow: ensure vlistlen > 0 before subtracting */
+			if (vlistlen > 0 && vlistlen <= strlen(vlist))
+			{
+				vlist[vlistlen - 1] = '\0';
+			}
 
 			for (v = strtok_r(vlist, ",", &ctx);
 			     v != NULL;
