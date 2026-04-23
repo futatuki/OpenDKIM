@@ -5145,7 +5145,8 @@ dkim_free(DKIM *dkim)
 
 			CLOBBER(dkim->dkim_siglist[c]->sig_key);
 			CLOBBER(dkim->dkim_siglist[c]->sig_sig);
-			if (dkim->dkim_siglist[c]->sig_keytype == DKIM_KEYTYPE_RSA)
+			if (dkim->dkim_siglist[c]->sig_keytype == DKIM_KEYTYPE_RSA ||
+			    dkim->dkim_siglist[c]->sig_keytype == DKIM_KEYTYPE_ED25519)
 			{
 				struct dkim_crypto *crypto;
 
