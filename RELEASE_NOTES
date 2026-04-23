@@ -119,6 +119,8 @@ release, and a summary of the changes in that release.
 		as dkim_test_key2(). For API compatibility, function interface
 		of dkim_test_key() is not changed, but it only calls
 		dkim_test_key2(). Patch from Yasuhito Futatsuki (PR #208).
+	LIBOPENDKIM: Fix a memory leak at dkim_free() for ed25519 keys
+                Patch from GimmeHardware (PR #243)
 	BUILD: Fix function signature of main() in configure. Patch from
 		Michael Orlitzky (PR #171).
 	BUILD: Fix pkgconfig names of Cyrus SASL and OpenLDAP in configure.
