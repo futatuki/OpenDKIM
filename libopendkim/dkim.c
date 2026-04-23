@@ -7946,11 +7946,17 @@ dkim_sig_getkeysize(DKIM_SIGINFO *sig, unsigned int *bits)
 	assert(sig != NULL);
 	assert(bits != NULL);
 
-	if (sig->sig_keybits == 0 &&
-            sig->sig_signalg != DKIM_SIGN_ED25519SHA256)
+	if (sig->sig_keybits == 0)
 		return DKIM_STAT_INVALID;
 
-	*bits = sig->sig_keybits;
+	if(sig->sig_signalg == DKIM_SIGN_ED25519SHA256)
+	{
+		*bits = 256;
+	}
+	else
+	{
+		*bits = sig->sig_keybits;
+	}
 
 	return DKIM_STAT_OK;
 }
