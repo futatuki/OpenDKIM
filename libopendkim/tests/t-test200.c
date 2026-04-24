@@ -41,15 +41,28 @@
 	"    DhCVlUrSjV4BwcVcOF6+FF3Zo9Rpo1tFOeS9mPYQTnGdaSGsgeefOsk2Jz\r\n" \
 	"    dA+L10TeYt9BgDfQNZtKdN1WO//KgIqXP7OdEFE4LjFYNcUxZQ4FADY+8=\r\n"
 
-const char rfc8463_ed25519_selector[] = "brisbane";
-const char rfc8463_rsa_selector[] = "test";
-const char rfc8463_domain[] = "football.example.com";
+#define RFC8463_RSA_SELECTOR	SELECTOR
+#define RFC8463_ED25519_SELECTOR	SELECTOR2
+#define RFC8463_DOMAIN	"football.example.com"
 
 int kl;
 
+/*
+**  KEY_LOOKUP_RFC8463 -- key lookup (allows ed25519 key)
+**
+**  Parameters:
+**  	dkim -- DKIM handle
+**  	sig -- DKIM_SIGINFO handle
+**  	buf -- where to write the result
+**  	buflen -- how much space is available at "buf"
+**
+**  Return value:
+**  	A DKIM_STAT_* constant.
+*/
 
 DKIM_STAT
-key_lookup(DKIM *dkim, DKIM_SIGINFO *sig, unsigned char *buf, size_t buflen)
+key_lookup_rfc8463(DKIM *dkim, DKIM_SIGINFO *sig, unsigned char *buf,
+                   size_t buflen)
 {
 	const char *selector;
 	const char *domain;
@@ -60,15 +73,15 @@ key_lookup(DKIM *dkim, DKIM_SIGINFO *sig, unsigned char *buf, size_t buflen)
 
 	selector = dkim_sig_getselector(sig);
 	assert(selector != NULL);
-	assert(!strcmp(selector, rfc8463_ed25519_selector) ||
-	       !strcmp(selector, rfc8463_rsa_selector));
+	assert(strcmp(selector, RFC8463_ED25519_SELECTOR) == 0 ||
+	       strcmp(selector, RFC8463_RSA_SELECTOR) == 0);
 
 	domain = dkim_sig_getdomain(sig);
 	assert(domain != NULL);
-	assert(strcmp(domain, rfc8463_domain) == 0);
+	assert(strcmp(domain, RFC8463_DOMAIN) == 0);
 
 	memset(buf, '\0', buflen);
-	if(!strcmp(selector, rfc8463_ed25519_selector))
+	if(strcmp(selector, RFC8463_ED25519_SELECTOR) == 0)
 	{
 		strncpy(buf, RFC8463_ED25519PUBLICKEY, buflen);
 	}
@@ -77,7 +90,7 @@ key_lookup(DKIM *dkim, DKIM_SIGINFO *sig, unsigned char *buf, size_t buflen)
 		strncpy(buf, RFC8463_RSAPUBLICKEY, buflen);
 	}
 
-	kl += 1;
+	kl++;
 
 	return DKIM_STAT_OK;
 }
@@ -135,7 +148,7 @@ main(int argc, char **argv)
 #endif /* TEST_KEEP_FILES */
 
 	/* supply the right pubkey above */
-	status = dkim_set_key_lookup(lib, key_lookup);
+	status = dkim_set_key_lookup(lib, key_lookup_rfc8463);
 	assert(status == DKIM_STAT_OK);
 
 	dkim = dkim_verify(lib, JOBID, NULL, &status);
