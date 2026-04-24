@@ -84,12 +84,14 @@ release, and a summary of the changes in that release.
 		which is marked as "ignore" by dkim_sig_ignore(), instead of
 		"dikim=fail".
 		Patch from Yasuhito Futatsuki (PR #234).
-        Fix incorrect parse error check on dkimf_rep_check().
-                Patch from Jared Mauch (PR on futatuki/OpenDKIM #2)
+	Fix incorrect parse error check on dkimf_rep_check().
+		Patch from Jared Mauch (PR on futatuki/OpenDKIM #2)
+	Fix incorrect empty string check on dkimf_add_signrequest().
+		Patch from GimmeHardware (PR #244)
 	CONFIG: Add compatibility with openssl-1.1.0.  Patch from
 		Scott Kitterman.
 	CONFIG: Add missing ReplaceHeaders definition. Patch from
-                Toby Ovod-Everett, Reported again by Harald Dunkel,
+		Toby Ovod-Everett, Reported again by Harald Dunkel,
 		GitHub PR by David Bürgin (SF bug #257; PR #125)
 	CONTRIB: Simplfy some logic in contrib/repute.  Patch from
 		Dilyan Palauzov.
@@ -120,13 +122,15 @@ release, and a summary of the changes in that release.
 		of dkim_test_key() is not changed, but it only calls
 		dkim_test_key2(). Patch from Yasuhito Futatsuki (PR #208).
 	LIBOPENDKIM: Fix a memory leak at dkim_free() for ed25519 keys
-                Patch from GimmeHardware (PR #243)
+		Patch from GimmeHardware (PR #243)
 	LIBOPENDKIM: fix dkim_sig_keybits() for ed25519 keys
-                Patch from GimmeHardware (PR #243)
+		Patch from GimmeHardware (PR #243)
 	LIBOPENDKIM TESTS: Make sure to execute t-cleanup after tests
 		(PR #243).  Patch from GimmeHardware (PR #243)
 	LIBOPENDKIM TESTS: Add 4 ed25519 directed tests and 2 ed25519
-                performance test scripts. Patch from GimmeHardware (PR #243)
+		performance test scripts. Patch from GimmeHardware (PR #243)
+	LIBVBR: Fix miss used string pointer on setting error message
+		in vbr_query().  Patch from GimmeHardware (PR #244)
 	BUILD: Fix function signature of main() in configure. Patch from
 		Michael Orlitzky (PR #171).
 	BUILD: Fix pkgconfig names of Cyrus SASL and OpenLDAP in configure.
@@ -217,7 +221,7 @@ release, and a summary of the changes in that release.
 	CONTRIB: Patches to systemd and init/redhat from Steve Jenkins.
 
 2.9.3		2014/12/27
-        Fix bug #177: Plug leaking "result" structures when OpenLDAP is in use.
+	Fix bug #177: Plug leaking "result" structures when OpenLDAP is in use.
 	Truncate configuration file lines at carriage return.
 	Replace overlapping strlcpy() with memmove() in dkim_get_key_file().
 		Reported by Daniel J. Luke.
@@ -1682,7 +1686,7 @@ release, and a summary of the changes in that release.
 
 1.1.0		2009/09/16
 	Feature request #SF2839110: Add _FFR_IDENTITY_HEADER, to set an
-       		identity (i=) for signing based on the value found in a
+		identity (i=) for signing based on the value found in a
 		particular header.  Requested by Florian Sager. 
 	Fix inside dkimf_libstatus() to return extended status code 
 		4.7.5 if temp-fail is due to key retrieval failure.
