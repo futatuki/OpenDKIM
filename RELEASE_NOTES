@@ -125,6 +125,8 @@ release, and a summary of the changes in that release.
                 Patch from GimmeHardware (PR #243)
 	LIBOPENDKIM TESTS: Make sure to execute t-cleanup after tests
 		(PR #243).  Patch from GimmeHardware (PR #243)
+	LIBOPENDKIM TESTS: Add 4 ed25519 directed tests and 2 ed25519
+                performance test scripts. Patch from GimmeHardware (PR #243)
 	BUILD: Fix function signature of main() in configure. Patch from
 		Michael Orlitzky (PR #171).
 	BUILD: Fix pkgconfig names of Cyrus SASL and OpenLDAP in configure.
