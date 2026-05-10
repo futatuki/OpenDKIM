@@ -571,12 +571,13 @@ struct lookup
 #define	DKIMF_STATUS_GOOD	0
 #define	DKIMF_STATUS_BAD	1
 #define	DKIMF_STATUS_NOKEY	2
-#define	DKIMF_STATUS_REVOKED	3
-#define	DKIMF_STATUS_NOSIGNATURE 4
-#define	DKIMF_STATUS_BADFORMAT	5
-#define	DKIMF_STATUS_PARTIAL	6
-#define	DKIMF_STATUS_VERIFYERR	7
-#define	DKIMF_STATUS_UNKNOWN	8
+#define	DKIMF_STATUS_KEYFAIL	3
+#define	DKIMF_STATUS_REVOKED	4
+#define	DKIMF_STATUS_NOSIGNATURE 5
+#define	DKIMF_STATUS_BADFORMAT	6
+#define	DKIMF_STATUS_PARTIAL	7
+#define	DKIMF_STATUS_VERIFYERR	8
+#define	DKIMF_STATUS_UNKNOWN	9
 
 #define SIGMIN_BYTES		0
 #define SIGMIN_PERCENT		1
@@ -674,6 +675,7 @@ struct lookup dkimf_statusstrings[] =
 	{ "no error",				DKIMF_STATUS_GOOD },
 	{ "bad signature",			DKIMF_STATUS_BAD },
 	{ "key retrieval failed",		DKIMF_STATUS_NOKEY },
+	{ "key retrieval timeout",		DKIMF_STATUS_KEYFAIL },
 	{ "key revoked",			DKIMF_STATUS_REVOKED },
 	{ "no signature",			DKIMF_STATUS_NOSIGNATURE },
 	{ "bad message/signature format",	DKIMF_STATUS_BADFORMAT },
@@ -9594,12 +9596,14 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 			retcode = dkimf_miltercode(ctx,
 			                           conf->conf_handling.hndl_dnserr,
 			                           NULL);
+			replytxt = "DKIM key retrieval timeout";
 		}
 		else
 		{
 			retcode = dkimf_miltercode(ctx,
 			                           conf->conf_handling.hndl_nokey,
 			                           NULL);
+			replytxt = "DKIM key retrieval failed";
 		}
 
 		if (conf->conf_dolog)
@@ -9621,21 +9625,22 @@ dkimf_libstatus(SMFICTX *ctx, DKIM *dkim, char *where, int status)
 			if (selector != NULL && domain != NULL)
 			{
 				syslog(LOG_ERR,
-				       "%s: key retrieval failed (s=%s, d=%s)%s%s",
+				       "%s: %s (s=%s, d=%s)%s%s",
 				       JOBID(dfc->mctx_jobid), selector,
+				       dkimf_lookup_inttostr(status, dkimf_statusstrings),
 				       domain,
 				       err == NULL ? "" : ": ",
 				       err == NULL ? "" : err);
 			}
 			else
 			{
-				syslog(LOG_ERR, "%s: key retrieval failed%s%s",
+				syslog(LOG_ERR, "%s: key %s%s%s",
 				       JOBID(dfc->mctx_jobid),
+				       dkimf_lookup_inttostr(status, dkimf_statusstrings),
 				       err == NULL ? "" : ": ",
 				       err == NULL ? "" : err);
 			}
 		}
-		replytxt = "DKIM key retrieval failed";
 		break;
 
 	  case DKIM_STAT_SYNTAX:
@@ -13292,17 +13297,18 @@ mlfi_eoh(SMFICTX *ctx)
 #ifdef USE_LUA
 	if (conf->conf_screenscript != NULL)
 	{
+		int hkstat;
 		_Bool dofree = TRUE;
 		struct dkimf_lua_script_result lres;
 
 		memset(&lres, '\0', sizeof lres);
 
-		status = dkimf_lua_screen_hook(ctx, conf->conf_screenfunc,
+		hkstat = dkimf_lua_screen_hook(ctx, conf->conf_screenfunc,
 		                               conf->conf_screenfuncsz,
 		                               "screen script", &lres,
 		                               NULL, NULL);
 
-		if (status != 0)
+		if (hkstat != 0)
 		{
 			if (conf->conf_dolog)
 			{
@@ -13310,7 +13316,7 @@ mlfi_eoh(SMFICTX *ctx)
 				{
 					dofree = FALSE;
 
-					switch (status)
+					switch (hkstat)
 					{
 					  case 2:
 						lres.lrs_error = "processing error";
@@ -13364,6 +13370,11 @@ mlfi_eoh(SMFICTX *ctx)
 	  case DKIM_STAT_NOKEY:
 		dfc->mctx_status = DKIMF_STATUS_NOKEY;
 		dfc->mctx_addheader = TRUE;
+		return SMFIS_CONTINUE;
+
+	  case DKIM_STAT_KEYFAIL:
+		dfc->mctx_addheader = TRUE;
+		dfc->mctx_status = DKIMF_STATUS_KEYFAIL;
 		return SMFIS_CONTINUE;
 
 	  case DKIM_STAT_SYNTAX:
@@ -13497,7 +13508,7 @@ mlfi_eom(SMFICTX *ctx)
 	_Bool authorsig;
 	int status = DKIM_STAT_OK;
 	int c;
-	sfsistat ret;
+	sfsistat ret = SMFIS_ACCEPT;
 	connctx cc;
 	msgctx dfc;
 	DKIM *lastdkim = NULL;
@@ -13950,6 +13961,11 @@ mlfi_eom(SMFICTX *ctx)
 			}
 			break;
 
+		  case DKIM_STAT_KEYFAIL:
+			dfc->mctx_addheader = TRUE;
+			dfc->mctx_status = DKIMF_STATUS_KEYFAIL;
+			break;
+
 		  case DKIM_STAT_NOKEY:
 			dfc->mctx_addheader = TRUE;
 			dfc->mctx_status = DKIMF_STATUS_NOKEY;
@@ -13969,8 +13985,8 @@ mlfi_eom(SMFICTX *ctx)
 				                     (char *) dfc->mctx_jobid);
 			}
 
-			status = dkimf_libstatus(ctx, dfc->mctx_dkimv,
-			                         "dkim_eom()", status);
+			ret = dkimf_libstatus(ctx, dfc->mctx_dkimv,
+			                      "dkim_eom()", status);
 
 #ifdef SMFIF_QUARANTINE
 			if (dfc->mctx_capture)
@@ -13986,7 +14002,7 @@ mlfi_eom(SMFICTX *ctx)
 					}
 				}
 
-				status = SMFIS_ACCEPT;
+				ret = SMFIS_ACCEPT;
 			}
 #endif /* ! SMFIF_QUARANTINE */
 			break;
@@ -14643,6 +14659,7 @@ mlfi_eom(SMFICTX *ctx)
 			    dfc->mctx_status == DKIMF_STATUS_REVOKED ||
 			    dfc->mctx_status == DKIMF_STATUS_PARTIAL ||
 			    dfc->mctx_status == DKIMF_STATUS_NOKEY ||
+			    dfc->mctx_status == DKIMF_STATUS_KEYFAIL ||
 			    dfc->mctx_status == DKIMF_STATUS_VERIFYERR)
 			{
 				dkimf_ar_all_sigs(header, sizeof header,
@@ -15353,8 +15370,6 @@ mlfi_eom(SMFICTX *ctx)
 	**  If we got this far, we're ready to complete.
 	*/
 
-	ret = SMFIS_ACCEPT;
-
 	/* translate the stored status */
 	switch (dfc->mctx_status)
 	{
@@ -15373,6 +15388,11 @@ mlfi_eom(SMFICTX *ctx)
 	  case DKIMF_STATUS_NOKEY:
 		ret = dkimf_libstatus(ctx, lastdkim, "mlfi_eom()",
 		                      DKIM_STAT_NOKEY);
+		break;
+
+	  case DKIMF_STATUS_KEYFAIL:
+		ret = dkimf_libstatus(ctx, lastdkim, "mlfi_eom()",
+		                      DKIM_STAT_KEYFAIL);
 		break;
 
 	  case DKIMF_STATUS_REVOKED:
