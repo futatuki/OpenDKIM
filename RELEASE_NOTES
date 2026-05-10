@@ -88,6 +88,8 @@ release, and a summary of the changes in that release.
 		Patch from Jared Mauch (PR on futatuki/OpenDKIM #2)
 	Fix incorrect empty string check on dkimf_add_signrequest().
 		Patch from GimmeHardware (PR #244)
+	Fix issue #176: Fix FKIM_STAT_KEYFAIL error handling.
+		Patch from Yasuhito Futatsuki (PR #262).
 	CONFIG: Add compatibility with openssl-1.1.0.  Patch from
 		Scott Kitterman.
 	CONFIG: Add missing ReplaceHeaders definition. Patch from
